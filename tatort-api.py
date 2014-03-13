@@ -1,6 +1,6 @@
 import json
 import difflib
-from bottle import route, run, request, abort
+from bottle import *
 
 
 tatort_json = 'tatort.json'
@@ -9,8 +9,30 @@ with open('tatort.json') as f:
     data = json.load(f)
 
 
-@route('/nummer/:episoden_nummer', method='GET')
+app = Bottle()
+
+
+@app.route('/')
+def index():
+    '''
+    Dokumentation
+    '''
+    documentation = '<p><h1>tatort-api</h1></p><br />'
+    documentation += '<table id="api-endpoints"><tbody>\n'
+    documentation += '<tr><th style="text-align: left">Endpoint</th><th style="text-align: left">Description</th>\n'
+    for route in app.routes:
+        documentation += "\n<tr><td>" + route.rule + \
+                "</td><td>" + str(route.callback.__doc__) + '</td></tr>'
+    documentation += '</tbody></table>'
+
+    return documentation
+
+
+@app.route('/nummer/:episoden_nummer', method='GET')
 def nummer(episoden_nummer):
+    '''
+    dict aller Informationen der Episode
+    '''
     for i in data:
         if episoden_nummer == i['nummer']:
             return i
@@ -18,8 +40,11 @@ def nummer(episoden_nummer):
     abort(404, '%s nicht gefunden' % episoden_nummer)
 
 
-@route('/darsteller/:name', method='GET')
+@app.route('/darsteller/:name', method='GET')
 def darsteller(name):
+    '''
+    Liste der Tatort-Nummern in dem der Darsteller mitspielte
+    '''
     episoden_list = []
     for i in data:
         if name in i['darsteller']:
@@ -43,8 +68,11 @@ def darsteller(name):
             abort(404, '"%s" nicht gefunden' % name)
 
 
-@route('/titel/:name', method='GET')
+@app.route('/titel/:name', method='GET')
 def titel(name):
+    '''
+    dict aller Informationen der Episode
+    '''
     titel_list = []
     for i in data:
         if name == i['titel']:
@@ -63,4 +91,4 @@ def titel(name):
 
 
 if __name__ == '__main__':
-    run(debug=True)
+    app.run(debug=True)
